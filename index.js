@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import { auth } from "express-oauth2-jwt-bearer";
 
 import db from "./db/models/index.cjs";
 const { Listing } = db;
@@ -13,6 +14,13 @@ app.use(cors());
 // Enable reading JSON request bodies
 app.use(express.json());
 
+// Authorization middleware. When used, the Access Token must
+// exist and be verified against the Auth0 JSON Web Key Set.
+const checkJwt = auth({
+  audience: "https://carousell/api",
+  issuerBaseURL: `https://dev-9o--f19k.us.auth0.com/`,
+});
+
 // Retrieve all listings. No authentication required.
 app.get("/listings", async (req, res) => {
   const listings = await Listing.findAll();
@@ -20,7 +28,7 @@ app.get("/listings", async (req, res) => {
 });
 
 // Create listing. Requires authentication.
-app.post("/listings", async (req, res) => {
+app.post("/listings", checkJwt, async (req, res) => {
   // TODO: Get seller email from auth, query Users table for seller ID
 
   // Create new listing
@@ -46,7 +54,7 @@ app.get("/listings/:listingId", async (req, res) => {
 });
 
 // Buy specific listing. Requires authentication.
-app.put("/listings/:listingId/buy", async (req, res) => {
+app.put("/listings/:listingId/buy", checkJwt, async (req, res) => {
   const listing = await Listing.findByPk(req.params.listingId);
 
   // TODO: Get buyer email from auth, query Users table for buyer ID
