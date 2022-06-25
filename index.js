@@ -3,7 +3,7 @@ import express from "express";
 import { auth } from "express-oauth2-jwt-bearer";
 
 import db from "./db/models/index.cjs";
-const { Listing } = db;
+const { Listing, User } = db;
 
 const PORT = 3000;
 const app = express();
@@ -29,7 +29,12 @@ app.get("/listings", async (req, res) => {
 
 // Create listing. Requires authentication.
 app.post("/listings", checkJwt, async (req, res) => {
-  // TODO: Get seller email from auth, query Users table for seller ID
+  // Retrieve seller from DB via seller email from auth
+  const [seller] = await User.findOrCreate({
+    where: {
+      email: req.body.sellerEmail,
+    },
+  });
 
   // Create new listing
   const newListing = await Listing.create({
@@ -40,7 +45,7 @@ app.post("/listings", checkJwt, async (req, res) => {
     description: req.body.description,
     shippingDetails: req.body.shippingDetails,
     BuyerId: null,
-    SellerId: 1, // TODO: Replace with seller ID of authenticated seller
+    SellerId: seller.id,
   });
 
   // Respond with new listing
@@ -57,8 +62,15 @@ app.get("/listings/:listingId", async (req, res) => {
 app.put("/listings/:listingId/buy", checkJwt, async (req, res) => {
   const listing = await Listing.findByPk(req.params.listingId);
 
-  // TODO: Get buyer email from auth, query Users table for buyer ID
-  await listing.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+  // Retrieve seller from DB via seller email from auth
+  const [buyer] = await User.findOrCreate({
+    where: {
+      email: req.body.buyerEmail,
+    },
+  });
+
+  // Update listing to reference buyer's user ID
+  await listing.update({ BuyerId: buyer.id });
 
   // Respond to acknowledge update
   res.json(listing);
