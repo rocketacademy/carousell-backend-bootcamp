@@ -1,8 +1,8 @@
-import cors from "cors";
-import express from "express";
-import { auth } from "express-oauth2-jwt-bearer";
+const cors = require('cors')
+const express = require('express')
 
-import db from "./db/models/index.cjs";
+
+import db from "./db/models/index.js";
 const { Listing, User } = db;
 
 const PORT = 3000;
