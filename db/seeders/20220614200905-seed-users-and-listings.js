@@ -8,7 +8,7 @@ module.exports = {
         last_name: "Tan",
         phone_num: "98877889",
         email: "jason.tan@gmail.com",
-        creaeted_at: new Date(),
+        created_at: new Date(),
         updated_at: new Date(),
       },
     ]);

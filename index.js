@@ -1,11 +1,27 @@
 const cors = require('cors')
 const express = require('express')
+require('dotenv').config();
 
+// importing middlewares
+const auth = require('./middlewares/auth')
 
-import db from "./db/models/index.js";
-const { Listing, User } = db;
+// importing Routers
+const ListingsRouter = require('./routers/listingsRouter')
 
-const PORT = 3000;
+// importing Controllers
+const ListingsController = require('./controllers/listingsController')
+
+// importing DB
+const db = require('./db/models/index')
+const { listing, user } = db;
+
+// initializing Controllers -> note the lowercase for the first word
+const listingsController = new ListingsController(listing, user)
+
+// inittializing Routers
+const listingsRouter = new ListingsRouter(listingsController, auth).routes()
+
+const PORT = process.env.PORT;
 const app = express();
 
 // Enable CORS access to this server
@@ -14,67 +30,8 @@ app.use(cors());
 // Enable reading JSON request bodies
 app.use(express.json());
 
-// Authorization middleware. When used, the Access Token must
-// exist and be verified against the Auth0 JSON Web Key Set.
-const checkJwt = auth({
-  audience: "https://carousell/api",
-  issuerBaseURL: `https://dev-9o--f19k.us.auth0.com/`,
-});
-
-// Retrieve all listings. No authentication required.
-app.get("/listings", async (req, res) => {
-  const listings = await Listing.findAll();
-  res.json(listings);
-});
-
-// Create listing. Requires authentication.
-app.post("/listings", checkJwt, async (req, res) => {
-  // Retrieve seller from DB via seller email from auth
-  const [seller] = await User.findOrCreate({
-    where: {
-      email: req.body.sellerEmail,
-    },
-  });
-
-  // Create new listing
-  const newListing = await Listing.create({
-    title: req.body.title,
-    category: req.body.category,
-    condition: req.body.condition,
-    price: req.body.price,
-    description: req.body.description,
-    shippingDetails: req.body.shippingDetails,
-    BuyerId: null,
-    SellerId: seller.id,
-  });
-
-  // Respond with new listing
-  res.json(newListing);
-});
-
-// Retrieve specific listing. No authentication required.
-app.get("/listings/:listingId", async (req, res) => {
-  const listing = await Listing.findByPk(req.params.listingId);
-  res.json(listing);
-});
-
-// Buy specific listing. Requires authentication.
-app.put("/listings/:listingId/buy", checkJwt, async (req, res) => {
-  const listing = await Listing.findByPk(req.params.listingId);
-
-  // Retrieve seller from DB via seller email from auth
-  const [buyer] = await User.findOrCreate({
-    where: {
-      email: req.body.buyerEmail,
-    },
-  });
-
-  // Update listing to reference buyer's user ID
-  await listing.update({ BuyerId: buyer.id });
-
-  // Respond to acknowledge update
-  res.json(listing);
-});
+// enable and use router
+app.use('/listings', listingsRouter)
 
 app.listen(PORT, () => {
   console.log(`Express app listening on port ${PORT}!`);

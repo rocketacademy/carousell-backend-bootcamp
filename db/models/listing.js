@@ -38,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "listing",
-      udnerscored: true,
+      underscored: true,
     }
   );
   return Listing;
