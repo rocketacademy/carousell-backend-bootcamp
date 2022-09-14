@@ -17,7 +17,7 @@ class ListingsRouter {
     );
     router.get("/:listingId", this.controller.getOne.bind(this.controller));
 
-    // route protecteed with middleware
+    // route protected with middleware
     router.put(
       "/:listingId",
       this.auth,
