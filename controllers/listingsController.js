@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const BaseController = require("./baseController");
 
 class ListingsController extends BaseController {
@@ -9,10 +10,26 @@ class ListingsController extends BaseController {
   /** if a method in this extended class AND the base class has the same name, the one in the extended class will run over the base method */
   // Create listing. Requires authentication.
   async insertOne(req, res) {
-    const { title, category, condition, price, description, shippingDetails } =
-      req.body;
+    const {
+      title,
+      category,
+      condition,
+      price,
+      description,
+      shippingDetails,
+      email,
+    } = req.body;
+
+    console.log(email);
+
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
+      const [seller, created] = await this.userModel.findOrCreate({
+        where: { email },
+      });
+
+      console.log("SELLER HERE:");
+      console.log(seller);
 
       // Create new listing
       const newListing = await this.model.create({
@@ -23,7 +40,7 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: seller.id, // TODO: Replace with seller ID of authenticated seller
       });
 
       // Respond with new listing
@@ -47,11 +64,19 @@ class ListingsController extends BaseController {
   // Buy specific listing. Requires authentication.
   async buyItem(req, res) {
     const { listingId } = req.params;
+    const { buyerEmail } = req.body;
     try {
       const data = await this.model.findByPk(listingId);
 
       // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      const [buyer, created] = await this.userModel.findOrCreate({
+        where: { email: buyerEmail },
+      });
+
+      console.log("Buyer HERE:");
+      console.log(buyer.email);
+
+      await data.update({ BuyerId: buyer.id }); // TODO: Replace with buyer ID of authenticated buyer
 
       // Respond to acknowledge update
       return res.json(data);
