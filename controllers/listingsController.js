@@ -6,14 +6,22 @@ class ListingsController extends BaseController {
     this.userModel = userModel;
   }
 
-  /** if a method in this extended class AND the base class has the same name, the one in the extended class will run over the base method */
-  // Create listing. Requires authentication.
   async insertOne(req, res) {
-    const { title, category, condition, price, description, shippingDetails } =
-      req.body;
-    try {
-      // TODO: Get seller email from auth, query Users table for seller ID
+    const {
+      title,
+      category,
+      condition,
+      price,
+      description,
+      shippingDetails,
+      email,
+    } = req.body;
 
+    try {
+      // Check user ID
+      const [user] = await this.userModel.findOrCreate({
+        where: { email: email },
+      });
       // Create new listing
       const newListing = await this.model.create({
         title: title,
@@ -23,7 +31,7 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: user.dataValues.id,
       });
 
       // Respond with new listing
@@ -47,14 +55,24 @@ class ListingsController extends BaseController {
   // Buy specific listing. Requires authentication.
   async buyItem(req, res) {
     const { listingId } = req.params;
+    const { email } = req.body;
+    console.log(email);
     try {
+      // Find listing
       const data = await this.model.findByPk(listingId);
 
-      // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      // Find or create user
+      const [user] = await this.userModel.findOrCreate({
+        where: { email: email },
+      });
 
-      // Respond to acknowledge update
-      return res.json(data);
+      // Update listing
+      const updatedListing = await data.update({
+        buyerId: user.dataValues.id,
+      });
+
+      // Respond with updated listing
+      return res.json(updatedListing);
     } catch (err) {
       return res.status(400).json({ error: true, msg: err });
     }
