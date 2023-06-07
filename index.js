@@ -1,5 +1,10 @@
 const cors = require("cors");
 const express = require("express");
+const { auth } = require("express-oauth2-jwt-bearer");
+const checkJwt = auth({
+  audience: "https://carousell/api",
+  issuerBaseURL: `https://dev-ifvttzzrofvp1o6j.us.auth0.com/`,
+});
 
 require("dotenv").config();
 
@@ -17,7 +22,10 @@ const { listing, user } = db;
 const listingsController = new ListingsController(listing, user);
 
 // inittializing Routers
-const listingsRouter = new ListingsRouter(listingsController).routes();
+const listingsRouter = new ListingsRouter(
+  listingsController,
+  checkJwt
+).routes();
 
 const PORT = process.env.PORT;
 const app = express();
