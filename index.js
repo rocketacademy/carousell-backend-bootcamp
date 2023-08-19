@@ -1,6 +1,22 @@
 const cors = require('cors')
 const express = require('express')
-require('dotenv').config();
+require('dotenv').config(); // Load the .env variables
+
+/////////////////////////////////////
+//importing middleware - START
+/////////////////////////////////////
+const { auth } = require('express-oauth2-jwt-bearer');
+
+// Authorization middleware. When used, the Access Token must
+// exist and be verified against the Auth0 JSON Web Key Set.
+const checkJwt = auth({
+    audience: process.env.AUDIENCE,
+    issuerBaseURL: process.env.ISSUER_BASE_URL,
+  });
+/////////////////////////////////////
+//importing middleware - END
+/////////////////////////////////////
+
 
 // importing Routers
 const ListingsRouter = require('./routers/listingsRouter')
@@ -16,7 +32,8 @@ const { listing, user } = db;
 const listingsController = new ListingsController(listing, user)
 
 // inittializing Routers
-const listingsRouter = new ListingsRouter(listingsController).routes()
+//check the Access Token’s scopes for a specific route
+const listingsRouter = new ListingsRouter(listingsController,checkJwt).routes() 
 
 const PORT = process.env.PORT;
 const app = express();
