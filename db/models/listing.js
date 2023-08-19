@@ -20,14 +20,14 @@ module.exports = (sequelize, DataTypes) => {
       price: DataTypes.INTEGER,
       description: DataTypes.TEXT,
       shippingDetails: DataTypes.TEXT,
-      buyerId: {
+      buyerId: { //foreign key
         type: DataTypes.INTEGER,
         references: {
           model: "users",
           key: "id",
         },
       },
-      sellerId: {
+      sellerId: { //foreign key
         type: DataTypes.INTEGER,
         references: {
           model: "users",
