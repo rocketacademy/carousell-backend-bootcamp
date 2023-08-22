@@ -25,7 +25,7 @@ const { listing, user } = db;
 const listingsController = new ListingsController(listing, user);
 
 // inittializing Routers
-const listingsRouter = new ListingsRouter(listingsController).routes();
+const listingsRouter = new ListingsRouter(listingsController, checkJwt).routes();
 
 const PORT = process.env.PORT;
 
