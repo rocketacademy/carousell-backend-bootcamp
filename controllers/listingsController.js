@@ -13,6 +13,12 @@ class ListingsController extends BaseController {
       req.body;
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
+      // Retrieve seller from DB via seller email from auth
+      const [seller] = await this.userModel.findOrCreate({
+        where: {
+          email: req.body.sellerEmail,
+        },
+      });
 
       // Create new listing
       const newListing = await this.model.create({
@@ -23,7 +29,7 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: seller.id, // TODO: Replace with seller ID of authenticated seller
       });
 
       // Respond with new listing
@@ -51,7 +57,13 @@ class ListingsController extends BaseController {
       const data = await this.model.findByPk(listingId);
 
       // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      // Retrieve seller from DB via seller email from auth
+      const [buyer] = await this.userModel.findOrCreate({
+        where: {
+          email: req.body.buyerEmail,
+        },
+      });
+      await data.update({ buyerId: buyer.id }); // TODO: Replace with buyer ID of authenticated buyer
 
       // Respond to acknowledge update
       return res.json(data);
