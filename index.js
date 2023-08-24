@@ -1,25 +1,34 @@
-const cors = require('cors')
-const express = require('express')
+const cors = require('cors');
+const express = require('express');
+const { auth } = require('express-oauth2-jwt-bearer');
+
 require('dotenv').config();
 
-// importing Routers
-const ListingsRouter = require('./routers/listingsRouter')
+const PORT = process.env.PORT;
+const app = express();
 
-// importing Controllers
-const ListingsController = require('./controllers/listingsController')
+const checkJwt = auth({
+  audience: process.env.API_AUDIENCE,
+  issuerBaseURL: process.env.API_ISSUERBASEURL,
+});
+
 
 // importing DB
 const db = require('./db/models/index')
 const { listing, user } = db;
 
+// importing Controllers
 // initializing Controllers -> note the lowercase for the first word
+const ListingsController = require('./controllers/listingsController')
 const listingsController = new ListingsController(listing, user)
 
-// inittializing Routers
-const listingsRouter = new ListingsRouter(listingsController).routes()
-
-const PORT = process.env.PORT;
-const app = express();
+// importing Routers
+// initializing Routers
+const ListingsRouter = require('./routers/listingsRouter')
+const listingsRouter = new ListingsRouter(
+  listingsController,
+  checkJwt
+).routes();
 
 // Enable CORS access to this server
 app.use(cors());
