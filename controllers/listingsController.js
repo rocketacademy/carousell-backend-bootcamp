@@ -13,6 +13,15 @@ class ListingsController extends BaseController {
       req.body;
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
+      const [user, created] = await this.userModel.findOrCreate({
+        where: { email: userEmail }, // Replace with the correct attribute name for email in your Users model
+        defaults: {
+          // Additional default attributes you may want to set when a new user is created
+          firstName: userFirstName,
+          lastName: userLastName,
+          phoneNum: userPhoneNumber,
+        },
+      });
 
       // Create new listing
       const newListing = await this.model.create({
