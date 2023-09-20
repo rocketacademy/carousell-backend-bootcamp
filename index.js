@@ -7,8 +7,8 @@ const { auth } = require("express-oauth2-jwt-bearer");
 // Authorization middleware. When used, the Access Token must
 // exist and be verified against the Auth0 JSON Web Key Set.
 const checkJwt = auth({
-  audience: process.env.AUDIENCE,
-  issuerBaseURL: process.env.ISSUER_BASE_URL,
+  audience: process.env.API_AUDIENCE,
+  issuerBaseURL: process.env.API_ISSUER_BASE_URL,
 });
 
 // importing Routers
@@ -22,6 +22,7 @@ const db = require("./db/models/index");
 const { listing, user } = db;
 
 // initializing Controllers -> note the lowercase for the first word
+
 const listingsController = new ListingsController(listing, user);
 
 // inittializing Routers

@@ -24,8 +24,8 @@ class ListingsRouter {
       this.controller.getOne.bind(this.controller)
     );
     router.put(
-      "/:listingId",
-      //this.checkJwt,
+      "/:listingId/buy",
+      this.checkJwt,
       this.controller.buyItem.bind(this.controller)
     );
     return router;
