@@ -53,18 +53,26 @@ class ListingsController extends BaseController {
     const { listingId } = req.params;
     try {
       const data = await this.model.findByPk(listingId);
-  
+
       // TODO: Get buyer email from auth, query Users table for buyer ID
       const [buyer] = await this.userModel.findOrCreate({
         where: {
           email: req.body.buyerEmail,
         },
       });
-  
+
       // Update listing to reference buyer's user ID
       await data.update({ buyerId: buyer.id });
-  
+
       // Respond to acknowledge update
+      return res.json(data);
+    } catch (err) {
+      return res.status(400).json({ error: true, msg: err.message });
+    }
+  }
+  async buyCancel(req, res) {
+    const { listingId } = req.params;
+    try {
       return res.json(data);
     } catch (err) {
       return res.status(400).json({ error: true, msg: err.message });

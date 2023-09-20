@@ -10,7 +10,7 @@ class ListingsRouter {
     // we will insert routes into here later on
     router.get(
       "/",
-      
+
       this.controller.getAll.bind(this.controller)
     );
     router.post(
@@ -20,13 +20,18 @@ class ListingsRouter {
     );
     router.get(
       "/:listingId",
-     
+
       this.controller.getOne.bind(this.controller)
     );
     router.put(
       "/:listingId/buy",
       this.checkJwt,
       this.controller.buyItem.bind(this.controller)
+    );
+    router.delete(
+      "/:listingId/buy",
+      this.checkJwt,
+      this.controller.buyCancel.bind(this.controller)
     );
     return router;
   }
