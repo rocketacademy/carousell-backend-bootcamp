@@ -72,8 +72,24 @@ class ListingsController extends BaseController {
   }
   async buyCancel(req, res) {
     const { listingId } = req.params;
+
     try {
-      return res.json(data);
+      const data = await this.model.findByPk(listingId);
+
+      const [buyer] = await this.userModel.findOrCreate({
+        where: {
+          email: req.body.buyerEmail,
+        },
+      });
+      if (data.buyerId === buyer.id) {
+        // Update listing to reference buyer's user ID
+        await data.update({ buyerId: null });
+        return res.json(data);
+      } else {
+        return res
+          .status(403)
+          .json({ error: true, msg: "Buyer IDs do not match" });
+      }
     } catch (err) {
       return res.status(400).json({ error: true, msg: err.message });
     }
