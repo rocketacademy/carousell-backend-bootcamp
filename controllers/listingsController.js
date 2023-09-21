@@ -13,7 +13,11 @@ class ListingsController extends BaseController {
       req.body;
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
-
+      const [seller] = await this.userModel.findOrCreate({
+        where: {
+          email: req.body.sellerEmail,
+        },
+      });
       // Create new listing
       const newListing = await this.model.create({
         title: title,
@@ -23,7 +27,7 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: seller.id, // TODO: Replace with seller ID of authenticated seller
       });
 
       // Respond with new listing
@@ -51,12 +55,43 @@ class ListingsController extends BaseController {
       const data = await this.model.findByPk(listingId);
 
       // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      const [buyer] = await this.userModel.findOrCreate({
+        where: {
+          email: req.body.buyerEmail,
+        },
+      });
+
+      // Update listing to reference buyer's user ID
+      await data.update({ buyerId: buyer.id });
 
       // Respond to acknowledge update
       return res.json(data);
     } catch (err) {
-      return res.status(400).json({ error: true, msg: err });
+      return res.status(400).json({ error: true, msg: err.message });
+    }
+  }
+  async buyCancel(req, res) {
+    const { listingId } = req.params;
+
+    try {
+      const data = await this.model.findByPk(listingId);
+
+      const [buyer] = await this.userModel.findOrCreate({
+        where: {
+          email: req.body.buyerEmail,
+        },
+      });
+      if (data.buyerId === buyer.id) {
+        // Update listing to reference buyer's user ID
+        await data.update({ buyerId: null });
+        return res.json(data);
+      } else {
+        return res
+          .status(403)
+          .json({ error: true, msg: "Buyer IDs do not match" });
+      }
+    } catch (err) {
+      return res.status(400).json({ error: true, msg: err.message });
     }
   }
 }
