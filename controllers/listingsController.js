@@ -9,10 +9,22 @@ class ListingsController extends BaseController {
   /** if a method in this extended class AND the base class has the same name, the one in the extended class will run over the base method */
   // Create listing. Requires authentication.
   async insertOne(req, res) {
-    const { title, category, condition, price, description, shippingDetails } =
-      req.body;
+    const {
+      title,
+      category,
+      condition,
+      price,
+      description,
+      shippingDetails,
+      email,
+    } = req.body;
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
+      const [user] = await this.userModel.findOrCreate({
+        where: {
+          email: email,
+        },
+      });
 
       // Create new listing
       const newListing = await this.model.create({
@@ -23,12 +35,13 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: user.id,
       });
 
       // Respond with new listing
       return res.json(newListing);
     } catch (err) {
+      console.log("Error in createnewitem:", err);
       return res.status(400).json({ error: true, msg: err });
     }
   }
@@ -46,16 +59,27 @@ class ListingsController extends BaseController {
 
   // Buy specific listing. Requires authentication.
   async buyItem(req, res) {
+    console.log("at the top");
     const { listingId } = req.params;
+    const { email } = req.body;
     try {
       const data = await this.model.findByPk(listingId);
-
-      // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
-
+      const listing = await this.model.findByPk(req.params.listingId);
+      console.log("Before findOrCreate");
+      // Retrieve seller from DB via seller email from auth
+      const [user] = await this.userModel.findOrCreate({
+        where: {
+          email: email,
+        },
+      });
+      console.log("After findOrCreate");
+      // Update listing to reference buyer's user ID
+      console.log("Before listing.update");
+      await listing.update({ buyerId: user.id });
       // Respond to acknowledge update
       return res.json(data);
     } catch (err) {
+      console.log("Error in buyItem:", err);
       return res.status(400).json({ error: true, msg: err });
     }
   }
