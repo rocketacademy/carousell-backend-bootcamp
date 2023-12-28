@@ -56,11 +56,14 @@ class ListingsController extends BaseController {
   // Buy specific listing. Requires authentication.
   async buyItem(req, res) {
     const { listingId } = req.params;
+    const { email } = req.body;
     try {
+      const buyer = await this.userModel.findOrCreate({
+        where: { email: email },
+      });
       const data = await this.model.findByPk(listingId);
-
       // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      await data.update({ buyerId: buyer[0].id }); // TODO: Replace with buyer ID of authenticated buyer
 
       // Respond to acknowledge update
       return res.json(data);
