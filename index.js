@@ -19,7 +19,6 @@ const checkJwt = auth({
   audience: process.env.AUDIENCE,
   issuerBaseURL: process.env.ISSUER_BASE_URL,
 });
-app.use(auth());
 // initializing Controllers -> note the lowercase for the first word
 const listingsController = new ListingsController(listing, user);
 
