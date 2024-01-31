@@ -16,14 +16,13 @@ class ListingsController extends BaseController {
       price,
       description,
       shippingDetails,
-      email,
+      sellerEmail,
     } = req.body;
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
-
-      const [seller] = await this.userModel.findOrCreate({
+      const [user] = await this.userModel.findOrCreate({
         where: {
-          email: email,
+          email: sellerEmail,
         },
       });
 
@@ -36,12 +35,13 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: seller.id,
+        sellerId: user.id,
       });
 
       // Respond with new listing
       return res.json(newListing);
     } catch (err) {
+      console.log("Error in createnewitem:", err);
       return res.status(400).json({ error: true, msg: err });
     }
   }
@@ -59,21 +59,27 @@ class ListingsController extends BaseController {
 
   // Buy specific listing. Requires authentication.
   async buyItem(req, res) {
+    console.log("at the top");
     const { listingId } = req.params;
+    const { email } = req.body;
     try {
       const data = await this.model.findByPk(listingId);
-
-      // TODO: Get buyer email from auth, query Users table for buyer ID
-      const buyer = await this.userModel.findOrCreate({
+      const listing = await this.model.findByPk(req.params.listingId);
+      console.log("Before findOrCreate");
+      // Retrieve seller from DB via seller email from auth
+      const [user] = await this.userModel.findOrCreate({
         where: {
-          email: req.body.buyerEmail,
+          email: email,
         },
       });
-      await data.update({ BuyerId: buyer.email }); // TODO: Replace with buyer ID of authenticated buyer
-
+      console.log("After findOrCreate");
+      // Update listing to reference buyer's user ID
+      console.log("Before listing.update");
+      await listing.update({ buyerId: user.id });
       // Respond to acknowledge update
       return res.json(data);
     } catch (err) {
+      console.log("Error in buyItem:", err);
       return res.status(400).json({ error: true, msg: err });
     }
   }

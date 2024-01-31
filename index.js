@@ -3,7 +3,7 @@ const express = require("express");
 require("dotenv").config();
 
 // importing middlewares
-const auth = require("./middlewares/auth");
+const jwt = require("./middlewares/auth");
 
 // importing Routers
 const ListingsRouter = require("./routers/listingsRouter");
@@ -20,7 +20,7 @@ const listingsController = new ListingsController(listing, user);
 
 // inittializing Routers
 // including auth0 in router
-const listingsRouter = new ListingsRouter(listingsController, auth).routes();
+const listingsRouter = new ListingsRouter(listingsController, jwt).routes();
 
 const PORT = process.env.PORT;
 const app = express();
