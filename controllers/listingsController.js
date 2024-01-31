@@ -61,7 +61,7 @@ class ListingsController extends BaseController {
   async buyItem(req, res) {
     console.log("at the top");
     const { listingId } = req.params;
-    const { email } = req.body;
+    const { buyerEmail } = req.body;
     try {
       const data = await this.model.findByPk(listingId);
       const listing = await this.model.findByPk(req.params.listingId);
@@ -69,7 +69,7 @@ class ListingsController extends BaseController {
       // Retrieve seller from DB via seller email from auth
       const [user] = await this.userModel.findOrCreate({
         where: {
-          email: email,
+          email: buyerEmail,
         },
       });
       console.log("After findOrCreate");
