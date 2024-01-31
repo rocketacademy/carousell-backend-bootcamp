@@ -6,11 +6,11 @@ const { auth } = require("express-oauth2-jwt-bearer");
 const PORT = process.env.PORT;
 const app = express();
 
-//enable auth0
-app.use(auth());
-
 //checking for required scopes for specific route
-const checkJwt = auth();
+const checkJwt = auth({
+  audience: process.env.AUDIENCE,
+  issuerBaseURL: process.env.ISSUER_BASE_URL,
+});
 
 // importing Routers
 const ListingsRouter = require("./routers/listingsRouter");
