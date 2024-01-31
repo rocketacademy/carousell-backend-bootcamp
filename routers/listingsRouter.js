@@ -9,9 +9,11 @@ class ListingsRouter {
     routes(){
         // we will insert routes into here later on
         router.get('/', this.controller.getAll.bind(this.controller))
+				router.get('/users/:email', this.controller.getUser.bind(this.controller))
         router.post('/', this.jwtCheck, this.controller.insertOne.bind(this.controller))
         router.get('/:listingId', this.controller.getOne.bind(this.controller))
         router.put('/:listingId', this.jwtCheck,this.controller.buyItem.bind(this.controller))
+				router.post('/users', this.controller.findOrCreateUser.bind(this.controller))
         return router
     }
 }

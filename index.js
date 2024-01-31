@@ -15,9 +15,9 @@ const { listing, user } = db;
 
 //auth
 const jwtCheck = auth({
-  audience: 'http://carousell/api',
-  issuerBaseURL: `https://dev-ph665ddgzy1bp5ra.us.auth0.com/`,
-	tokenSigningAlg: 'RS256'
+  audience:process.env.AUTH_AUDIENCE,
+  issuerBaseURL:process.env.AUTH_ISSUER_BASE_URL,
+	tokenSigningAlg:"RS256",
 });
 
 // initializing Controllers -> note the lowercase for the first word
