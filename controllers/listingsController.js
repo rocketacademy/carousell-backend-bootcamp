@@ -28,6 +28,10 @@ class ListingsController extends BaseController {
         },
       });
       console.log(`seller`, sellerId);
+
+      const sellerUser = sellerId[0];
+      const sellerIdValue = sellerUser.dataValues.id;
+
       // Create new listing
       const newListing = await this.model.create({
         title: title,
@@ -37,7 +41,7 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: sellerId,
+        sellerId: sellerIdValue,
       });
 
       // Respond with new listing
