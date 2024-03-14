@@ -11,8 +11,12 @@ class ListingsController extends BaseController {
   async insertOne(req, res) {
     const { title, category, condition, price, description, shippingDetails } =
       req.body;
+    const { sellerEmail } = req.body;
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
+      const seller = await this.userModel.findOrCreate({
+        where: { email: sellerEmail },
+      });
 
       // Create new listing
       const newListing = await this.model.create({
@@ -23,13 +27,12 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: seller[0].dataValues.id, // TODO: Replace with seller ID of authenticated seller
       });
-
       // Respond with new listing
       return res.json(newListing);
     } catch (err) {
-      return res.status(400).json({ error: true, msg: err });
+      return res.status(400).json({ error: true, msg: err.message });
     }
   }
 
@@ -40,7 +43,7 @@ class ListingsController extends BaseController {
       const output = await this.model.findByPk(listingId);
       return res.json(output);
     } catch (err) {
-      return res.status(400).json({ error: true, msg: err });
+      return res.status(400).json({ error: true, msg: err.message });
     }
   }
 
@@ -51,12 +54,17 @@ class ListingsController extends BaseController {
       const data = await this.model.findByPk(listingId);
 
       // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      const { buyerEmail } = req.body;
+      const buyer = await this.userModel.findOrCreate({
+        where: { email: buyerEmail },
+      });
+      console.log(buyer);
+      await data.update({ buyerId: buyer[0].dataValues.id }); // TODO: Replace with buyer ID of authenticated buyer
 
       // Respond to acknowledge update
       return res.json(data);
     } catch (err) {
-      return res.status(400).json({ error: true, msg: err });
+      return res.status(400).json({ error: true, msg: err.message });
     }
   }
 }
