@@ -9,10 +9,29 @@ class ListingsController extends BaseController {
   /** if a method in this extended class AND the base class has the same name, the one in the extended class will run over the base method */
   // Create listing. Requires authentication.
   async insertOne(req, res) {
-    const { title, category, condition, price, description, shippingDetails } =
-      req.body;
+    const {
+      title,
+      category,
+      condition,
+      price,
+      description,
+      shippingDetails,
+      sellerEmail,
+    } = req.body;
+
+    if (!sellerEmail) {
+      return res
+        .status(400)
+        .json({ error: true, msg: "Seller email is required" });
+    }
+
     try {
       // TODO: Get seller email from auth, query Users table for seller ID
+      const [user, created] = await this.userModel.findOrCreate({
+        where: { email: sellerEmail },
+      });
+
+      const sellerId = user.id;
 
       // Create new listing
       const newListing = await this.model.create({
@@ -23,12 +42,13 @@ class ListingsController extends BaseController {
         description: description,
         shippingDetails: shippingDetails,
         buyerId: null,
-        sellerId: 1, // TODO: Replace with seller ID of authenticated seller
+        sellerId: sellerId,
       });
 
       // Respond with new listing
       return res.json(newListing);
     } catch (err) {
+      console.log(err);
       return res.status(400).json({ error: true, msg: err });
     }
   }
@@ -47,11 +67,18 @@ class ListingsController extends BaseController {
   // Buy specific listing. Requires authentication.
   async buyItem(req, res) {
     const { listingId } = req.params;
+    const { buyerEmail } = req.body;
     try {
+      const [user, created] = await this.userModel.findOrCreate({
+        where: { email: buyerEmail },
+      });
+
+      const buyerId = user.id;
+
       const data = await this.model.findByPk(listingId);
 
       // TODO: Get buyer email from auth, query Users table for buyer ID
-      await data.update({ BuyerId: 1 }); // TODO: Replace with buyer ID of authenticated buyer
+      await data.update({ buyerId }); // TODO: Replace with buyer ID of authenticated buyer
 
       // Respond to acknowledge update
       return res.json(data);
